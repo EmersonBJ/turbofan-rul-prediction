@@ -22,6 +22,8 @@ ML/
 |-- Assets.md                             # Dicionario de variaveis N-CMAPSS e alinhamento de sensores
 |-- requirements.txt                      # Dependencias do ambiente Python
 |-- .gitignore                            # Politicas de exclusao de dados brutos e caches
+|-- gerar_grafico_comparativo.py          # Script gerador do painel integrado de desempenho
+|-- grafico_comparativo_desempenho_overfitting.png # Painel visual consolidado (Desempenho, Overfitting, Underfitting)
 |-- Regression/
 |   |-- Baseline_Linear.py                # Modelo linear de referencia (Scikit-Learn)
 |   |-- modelo_baseline_linear.pkl        # Artefato serializado do baseline linear
@@ -73,7 +75,36 @@ ML/
 
 ---
 
-## 3. Ranking de Desempenho dos Modelos
+## 3. Analise Integrada: Desempenho, Overfitting e Underfitting
+
+Para consolidar todos os experimentos do projeto em uma visao holistica, gerou-se um painel visual unico integrando a metrica de erro absoluto (RMSE), o grau de sobreajuste (Generalization Gap) e a dinamica temporal de aprendizado:
+
+![Analise Integrada de Desempenho, Overfitting e Underfitting](grafico_comparativo_desempenho_overfitting.png)
+
+### Descricao Tecnica dos Paineis:
+
+1. **Painel (A) - Desempenho Relativo e Gap de Generalizacao:**
+   - Compara lado a lado o RMSE de Treino vs. RMSE de Teste Cego para cada arquitetura.
+   - O delta $\Delta = \text{RMSE}_{\text{teste}} - \text{RMSE}_{\text{treino}}$ quantifica o **Grau de Overfitting**.
+   - Modelos como **LSTM Padrao** ($\Delta = +6.26$) e **Hibrido CNN-LSTM** ($\Delta = +6.09$) exibem colapso por memorizacao de ruido. O **XGBoost Otimizado** exibe o menor gap relativo ($\Delta = +0.68$) com o menor erro global.
+
+2. **Painel (B) - Mapa de Diagnostico de Vies-Variancia (Trade-Off):**
+   - Mapeia os algoritmos no espaco bidimensional: Grau de Overfitting (Eixo X) vs. Erro de Teste Cego (Eixo Y).
+   - **Zona de Underfitting (Alto Vies):** A Regressao Linear se isola com erro superior a 15 ciclos, demonstrando incapacidade de modelar a fisica do turbofan.
+   - **Zona de Overfitting Critico (Alta Variancia):** Redes neurais profundas livres (LSTM, Hibrida) sofrem descolamento para a direita da fronteira.
+   - **Zona Otima (Equilibrio de Pareto):** O XGBoost Otimizado e a Rede Suprema (com Early Stopping) ocupam a regiao de equilibrio ideal entre viés e variancia.
+
+3. **Painel (C) - Dinamica Temporal de Aprendizado e Ponto de Ruptura:**
+   - Rastrea a evolucao do RMSE ao longo das 10 epocas de treino.
+   - Revela a **Bifurcacao Catastrofica da LSTM**: na Epoca 2, atinge o ponto otimo (6.48 ciclos); a partir da Epoca 3, o erro de treino despenca para 1.78 enquanto o erro de teste explode para 8.04.
+   - Demonstra a eficacia do **Early Stopping na Rede Suprema**, congelando os pesos na Epoca 2 em 6.39 ciclos antes do inicio da divergencia.
+
+4. **Painel (D) - Matriz Sintetica de Diagnostico e Metricas:**
+   - Classificacao formal de confiabilidade industrial categorizada por cores de alerta e recomendacao tecnica.
+
+---
+
+## 4. Ranking Oficial de Desempenho dos Modelos
 
 A tabela abaixo sumariza o ranking oficial de performance dos algoritmos testados na base cega de validacao, ordenados do melhor para o pior desempenho (menor RMSE):
 
@@ -90,7 +121,7 @@ A tabela abaixo sumariza o ranking oficial de performance dos algoritmos testado
 
 ---
 
-## 4. Analise Tecnica Individual dos Modelos
+## 5. Analise Tecnica Individual dos Modelos
 
 ### 1º Lugar: XGBoost Otimizado (Melhor Modelo Geral)
 - **RMSE:** 4.48 ciclos | **MAE:** 4.53 ciclos.
@@ -145,7 +176,7 @@ A tabela abaixo sumariza o ranking oficial de performance dos algoritmos testado
 
 ---
 
-## 5. Engenharia de Dados e Restricoes de Hardware
+## 6. Engenharia de Dados e Restricoes de Hardware
 
 O processamento do dataset N-CMAPSS DS01/DS02 (~5 milhoes de registros x 45 variaveis fisicas) impos desafios criticos de infraestrutura:
 
@@ -159,7 +190,7 @@ O processamento do dataset N-CMAPSS DS01/DS02 (~5 milhoes de registros x 45 vari
 
 ---
 
-## 6. Conclusao Cientifica
+## 7. Conclusao Cientifica
 
 Os experimentos confirmam uma conclusao empirica consistente com a literatura de engenharia de confiabilidade aeronautica:
 - Para dados tabulares de telemetria industrial marcados por ruidos estocasticos de operacao atmosferica, **algoritmos de ensemble baseados em arvores de decisao com regularizacao de gradiente (XGBoost) superam sistematicamente arquiteturas de Deep Learning convencionais**.
@@ -167,7 +198,7 @@ Os experimentos confirmam uma conclusao empirica consistente com a literatura de
 
 ---
 
-## 7. Instrucoes de Reproducao
+## 8. Instrucoes de Reproducao
 
 ### Instalacao do Ambiente
 ```bash
